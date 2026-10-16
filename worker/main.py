@@ -1,3 +1,4 @@
+
 """QuoteCraft: dark motivational quote poster + optional effect Shorts renderer."""
 from __future__ import annotations
 import base64, io, json, os, random, re, shutil, subprocess
@@ -291,12 +292,18 @@ def render(payload:RenderRequest):
     if payload.withVideo:
         render_video_shorts(poster_path,payload.videoSeconds,folder,chosen_effect,payload.style)
         assets['reel']=f'/output/{payload.jobId}/reel.mp4'
+
+    # Python 3.11-compatible: compute the language BEFORE interpolating it in an f-string.
+    # Avoid backslashes inside f-string expressions (PEP 701 support begins in Python 3.12).
+    post_headline = payload.post.get('headline', '')
+    post_language = 'Hindi' if re.search(r'[\u0900-\u097F]', post_headline) else 'English'
+
     credits=(
         f"POST TYPE: motivational quote poster\n"
         f"BRAND: {payload.brand}\n"
         f"HANDLE: {payload.handle}\n"
         f"STYLE: {payload.style}\n"
-        f"LANGUAGE: {'Hindi' if re.search('[\u0900-\u097F]', payload.post.get('headline','')) else 'English'}\n"
+        f"LANGUAGE: {post_language}\n"
         f"VIDEO REQUESTED: {'yes' if payload.withVideo else 'no'}\n"
         f"VIDEO LENGTH: {payload.videoSeconds if payload.withVideo else 0}s\n"
         f"ICON UPLOADED: {'yes' if payload.iconDataUrl else 'no'}\n"
