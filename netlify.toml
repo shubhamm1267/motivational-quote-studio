@@ -1,0 +1,14 @@
+# Netlify reads this from the repository root.
+# Angular project is under /frontend.
+[build]
+  base = "frontend"
+  command = "node ../scripts/install-frontend.mjs && node ../scripts/prepare-netlify.mjs && npm run build"
+  publish = "dist/studio/browser"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
