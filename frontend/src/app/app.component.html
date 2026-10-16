@@ -1,78 +1,642 @@
+
 <div class="shell">
- <aside class="sidebar">
-  <div class="logo"><div class="logo-icon">✦</div><div><strong>QUOTECRAFT</strong><small>One-click Quote Studio</small></div></div>
-  <div class="side-label">CREATOR WORKSPACE</div>
-  <div class="side-link active"><span>◈</span> Quote Image + Shorts Video</div>
-  <div class="side-link"><span>▧</span> Quote Posters <small>1080P</small></div>
-  <div class="side-link"><span>▷</span> Shorts MP4 <small>5s / 10s</small></div>
-  <div class="side-link"><span>⌗</span> Caption & Tags</div>
-  <div class="spacer"></div>
-  <div class="side-card"><span class="online-dot"></span> Local generation<br><small>In-app previews + Recent Outputs library</small></div>
-  <p class="fine">Original designs inspired by motivational quote pages. Not affiliated with another creator.</p>
- </aside>
- <main class="main">
-  <header class="topbar"><div><span class="top-pill">✦ MOTIVATIONAL CONTENT SUITE</span><h1>Make quotes <em>stand out.</em></h1><p>Generate PNG + Shorts MP4 and preview them directly in this studio. Previous outputs are automatically restored from disk.</p></div><div class="top-badge">ONE CLICK<br><b>Shorts Ready</b></div></header>
-  <div class="workgrid">
-   <section class="form-panel">
-    <div class="panel-title"><div><span class="step">01</span><h2>Create your quote post</h2></div><span class="subtle">Configure</span></div>
-    <label class="field-label">Quote category</label>
-    <div class="category-grid">
-     <button type="button" *ngFor="let c of categories" class="cat-button" [class.selected]="category===c.id" (click)="category=c.id"><span class="cat-check">{{category===c.id?'✓':'○'}}</span><b>{{c.title}}</b><small>{{c.sub}}</small></button>
-    </div>
-    <label class="field-label" for="topic">Topic or mood <span>optional</span></label>
-    <input id="topic" [(ngModel)]="topic" placeholder="Example: heartbreak, confidence, fake people, self respect, life comedy" class="control" maxlength="140">
-    <div class="hint">Blank = original studio quote automatically. If Gemini key is added, a new custom quote can be generated around your topic.</div>
-    <div class="twocol">
-     <div><label class="field-label">Language</label><select [(ngModel)]="language" class="control"><option value="en">English</option><option value="hi">हिन्दी</option></select></div>
-     <div><label class="field-label">Page / brand name</label><input [(ngModel)]="brand" class="control" maxlength="36" placeholder="Your Page Name"></div>
-    </div>
-    <div class="twocol">
-     <div><label class="field-label">Corner handle text</label><input [(ngModel)]="handle" class="control" maxlength="40" placeholder="@yourhandle"></div>
-     <div><label class="field-label">Image ratio</label><select [(ngModel)]="size" class="control"><option value="portrait">1080×1350 • 4:5</option><option value="square">1080×1080 • 1:1</option></select></div>
-    </div>
-    <label class="field-label">Upload bottom icon / logo <span>optional</span></label>
-    <div class="upload-row"><input type="file" accept="image/png,image/jpeg,image/webp" (change)="onIconUploaded($event)"><small>{{iconName||'Only the icon you upload here will appear at the bottom center. Otherwise nothing will be shown there.'}}</small><button *ngIf="iconDataUrl" type="button" class="test-btn" (click)="clearIcon()">Remove icon</button></div>
-    <label class="field-label">Visual theme</label>
-    <div class="themes"><button *ngFor="let s of styles" type="button" [class.active]="style===s.id" (click)="style=s.id"><span [ngClass]="s.class"></span>{{s.name}}</button></div>
-    <div class="toggle-row"><div><b>Create simple Shorts video too</b><small>Static image video • optional subtle effects</small></div><label class="switch"><input type="checkbox" [(ngModel)]="withVideo"><span></span></label></div>
-    <div class="twocol" *ngIf="withVideo"><div><label class="field-label">Video duration</label><select [(ngModel)]="videoSeconds" class="control"><option [ngValue]="5">5 seconds</option><option [ngValue]="10">10 seconds</option></select></div><div><label class="field-label">Video type</label><input class="control" value="9:16 YouTube Shorts MP4" disabled></div></div>
-    <div class="toggle-row" *ngIf="withVideo"><div><b>Apply effect</b><small>Keep full image visible, just add a subtle overlay feel</small></div><label class="switch"><input type="checkbox" [(ngModel)]="effectEnabled"><span></span></label></div>
-    <div class="twocol" *ngIf="withVideo && effectEnabled"><div><label class="field-label">Effect style</label><select [(ngModel)]="effectStyle" class="control"><option value="reference">Reference Style</option><option value="softGlow">Soft Glow</option><option value="float">Float</option></select></div><div><label class="field-label">Effect behavior</label><input class="control" value="Full image stays visible" disabled></div></div>
-    <div class="key-area"><label class="field-label">Gemini API key <span>optional</span></label><input [(ngModel)]="geminiKey" class="control" type="password" placeholder="Paste your AI Studio API key" autocomplete="off"><select [(ngModel)]="model" class="control tiny"><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite</option></select><small class="hint">Gemini is used to draft an original quote in the selected category. Long content is automatically wrapped to stay inside the design.</small></div>
-    <details class="api-settings"><summary>API URL / Deployment settings</summary><input [(ngModel)]="apiBase" class="control" placeholder="Leave blank for local proxy" aria-label="Backend API URL"><button type="button" class="test-btn" (click)="checkWorker()">Check connection</button><label class="field-label" for="studio-access-key">Studio access key (from Render)</label><input id="studio-access-key" [(ngModel)]="studioAccessKey" type="password" autocomplete="off" class="control" placeholder="Same value as GENERATE_ACCESS_KEY on Render"><small class="hint">Local Windows: API URL can stay empty. On Netlify the Render URL is set automatically using RENDER_API_URL at build time. The studio access key is optional locally; for public deployment set it on Render to prevent outsiders starting renders.</small></details>
-    <div class="error" *ngIf="error">⚠ {{error}}</div><p class="connection-status" *ngIf="statusMessage">{{statusMessage}}</p>
-    <button type="button" class="generate" [disabled]="busy" (click)="generate()"><span>{{busy?'◌':'✦'}}</span> {{busy?'GENERATING CONTENT…':'GENERATE IMAGE + VIDEO'}}</button>
-    <p class="fine center">Text is auto-wrapped and spaced to avoid overlap.</p>
-   </section>
-   <section class="preview-panel">
-    <div class="panel-title"><div><span class="step">02</span><h2>Creative preview</h2></div><span class="result-indicator">{{showResult?'✓ READY':'● STUDIO'}}</span></div>
-    <div class="placeholder" *ngIf="!showResult"><div class="sample-art"><div class="glow-a"></div><div class="glow-b"></div><div class="sample-tag">@yourhandle</div><div class="sample-title">Before you reply to everything,<br><span>protect your peace first.</span></div></div><p>Your quote poster and static Shorts video will appear here after generation.</p><small>PNG • MP4 • Caption • Hashtags • Metadata</small></div>
-    <div *ngIf="job && !showResult" class="progress-wrap"><div class="progress-head">{{job.stage}} <b>{{job.progress}}%</b></div><div class="progress-track"><div [style.width.%]="job.progress"></div></div><small *ngIf="busy">Creating your content…</small></div>
-    <ng-container *ngIf="showResult && job as j">
-     <div class="preview-images">
-       <div class="preview-media"><div class="preview-tag">Image preview</div><img [src]="asset('poster')" alt="Generated quote poster" class="poster-image" loading="eager" (error)="onMediaError('poster')"><p *ngIf="mediaErrors.poster" class="warning">{{mediaErrors.poster}}</p></div>
-       <div *ngIf="j.assets?.['reel']" class="preview-media"><div class="preview-tag">Video preview • play here</div><video [src]="asset('reel')" [poster]="asset('poster')" controls playsinline preload="metadata" title="Generated quote video" (error)="onMediaError('reel')"></video><p *ngIf="mediaErrors.reel" class="warning">{{mediaErrors.reel}}</p></div>
-     </div>
-     <div class="download-row"><a class="download-btn" [href]="download('poster')" download>↓ DOWNLOAD PNG</a><a *ngIf="j.assets?.['reel']" class="download-btn secondary" [href]="download('reel')" download>↓ DOWNLOAD MP4</a><a class="download-btn secondary" [href]="asset('metadata')" target="_blank" rel="noopener">↗ META JSON</a></div>
-     <div class="download-row"><a class="download-btn secondary" [href]="asset('poster')" target="_blank" rel="noopener">Open image in browser ↗</a><a *ngIf="j.assets?.['reel']" class="download-btn secondary" [href]="asset('reel')" target="_blank" rel="noopener">Open video in browser ↗</a></div>
-     <div class="seo-box"><div class="seo-title"><b>Title, description & tags</b><button type="button" (click)="copy(completeCaption,'caption')">{{copied==='caption'?'✓ Copied':'Copy all'}}</button></div><div class="seo-subtitle">TITLE</div><p><b>{{j.post?.seoTitle}}</b></p><div class="seo-subtitle">DESCRIPTION / CAPTION</div><p class="caption-text">{{j.post?.caption}}</p><div class="seo-subtitle">HASHTAGS / TAGS</div><p class="tags">{{j.post?.hashtags?.join(' ')}}</p><p class="source"><strong>Quote type:</strong> {{j.post?.verification}}</p><p class="source"><strong>Video:</strong> {{j.assets?.['reel'] ? '9:16 MP4, no music' : 'Not requested'}}</p><p class="source"><a [href]="asset('credits')" target="_blank" rel="noopener">Open credits ↗</a></p></div>
-     <p *ngFor="let warning of j.warnings" class="warning">ⓘ {{warning}}</p>
-    </ng-container>
-    <section class="gallery-section">
-      <div class="gallery-title"><h3>Recent outputs</h3><button type="button" class="test-btn" (click)="loadHistory()" [disabled]="historyBusy">{{historyBusy?'Loading…':'↻ Refresh'}}</button></div>
-      <p class="hint">Already generated PNG/MP4 files are listed here, including outputs from before a page refresh or Node restart.</p>
-      <div *ngIf="galleryError" class="warning">{{galleryError}} — Make sure Node runs on port 3100.</div>
-      <div *ngIf="!historyBusy && !history.length && !galleryError" class="gallery-empty">No completed outputs yet. Generate one above, then it will appear here.</div>
-      <div class="gallery-grid" *ngIf="history.length">
-        <button type="button" *ngFor="let item of history" class="gallery-card" [class.selected]="job?.id===item.id" (click)="selectHistory(item)" [disabled]="busy">
-          <img [src]="asset('poster',item)" alt="Previously generated quote" loading="lazy" />
-          <span>{{item.assets?.['reel']?'PNG + MP4':'PNG only'}}</span>
-          <small>{{(item.post?.headline||'Saved quote').slice(0,65)}}</small>
-        </button>
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">✦</div>
+      <div>
+        <strong>QUOTECRAFT</strong>
+        <small>One-click Quote Studio</small>
       </div>
-    </section>
-    <div class="tip"><b>Publishing tip</b><span>Use short emotional first lines, one consistent handle, category-based series, and readable layouts. Test both image posts and the same quote as a static Shorts video.</span></div>
-   </section>
-  </div>
- </main>
+    </div>
+
+    <div class="side-label">CREATOR WORKSPACE</div>
+
+    <div class="side-link active">
+      <span>◈</span> Quote Image + Shorts Video
+    </div>
+    <div class="side-link">
+      <span>▧</span> Quote Posters <small>1080P</small>
+    </div>
+    <div class="side-link">
+      <span>▷</span> Shorts MP4 <small>5s / 10s</small>
+    </div>
+    <div class="side-link">
+      <span>⌗</span> Caption & Tags
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="side-card">
+      <span class="online-dot"></span>
+      Local generation
+      <small>In-app previews + Recent Outputs library</small>
+    </div>
+
+    <p class="fine">
+      Original designs inspired by motivational quote pages.
+      Not affiliated with another creator.
+    </p>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <span class="top-pill">✦ MOTIVATIONAL CONTENT SUITE</span>
+        <h1>Make quotes <em>stand out.</em></h1>
+        <p>
+          Generate PNG + Shorts MP4 and preview them directly in this studio.
+          Previous outputs are automatically restored from disk.
+        </p>
+      </div>
+      <div class="top-badge">
+        ONE CLICK
+        <b>Shorts Ready</b>
+      </div>
+    </header>
+
+    <div class="workgrid">
+      <section class="form-panel">
+        <div class="panel-title">
+          <div>
+            <span class="step">01</span>
+            <h2>Create your quote post</h2>
+          </div>
+          <span class="subtle">Configure</span>
+        </div>
+
+        <label class="field-label">Quote category</label>
+
+        <div class="category-grid">
+          <button
+            type="button"
+            *ngFor="let c of categories"
+            class="cat-button"
+            [class.selected]="category===c.id"
+            (click)="category=c.id"
+          >
+            <span class="cat-check">
+              {{category===c.id?'✓':'○'}}
+            </span>
+            <b>{{c.title}}</b>
+            <small>{{c.sub}}</small>
+          </button>
+        </div>
+
+        <label class="field-label" for="topic">
+          Topic or mood <span>optional</span>
+        </label>
+
+        <input
+          id="topic"
+          [(ngModel)]="topic"
+          placeholder="Example: heartbreak, confidence, fake people, self respect, life comedy"
+          class="control"
+          maxlength="140"
+        >
+
+        <div class="hint">
+          Blank = original studio quote automatically.
+          If Gemini key is added, a new custom quote can be generated
+          around your topic.
+        </div>
+
+        <div class="twocol">
+          <div>
+            <label class="field-label">Language</label>
+            <select [(ngModel)]="language" class="control">
+              <option value="en">English</option>
+              <option value="hi">हिन्दी</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label">Page / brand name</label>
+            <input
+              [(ngModel)]="brand"
+              class="control"
+              maxlength="36"
+              placeholder="Your Page Name"
+            >
+          </div>
+        </div>
+
+        <div class="twocol">
+          <div>
+            <label class="field-label">Corner handle text</label>
+            <input
+              [(ngModel)]="handle"
+              class="control"
+              maxlength="40"
+              placeholder="@yourhandle"
+            >
+          </div>
+
+          <div>
+            <label class="field-label">Image ratio</label>
+            <select [(ngModel)]="size" class="control">
+              <option value="portrait">1080×1350 • 4:5</option>
+              <option value="square">1080×1080 • 1:1</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="field-label">
+          Upload bottom icon / logo <span>optional</span>
+        </label>
+
+        <div class="upload-row">
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            (change)="onIconUploaded($event)"
+          >
+
+          <small>
+            {{iconName||'Only the icon you upload here will appear at the bottom center. Otherwise nothing will be shown there.'}}
+          </small>
+
+          <button
+            *ngIf="iconDataUrl"
+            type="button"
+            class="test-btn"
+            (click)="clearIcon()"
+          >
+            Remove icon
+          </button>
+        </div>
+
+        <label class="field-label">Visual theme</label>
+
+        <div class="themes">
+          <button
+            *ngFor="let s of styles"
+            type="button"
+            [class.active]="style===s.id"
+            (click)="style=s.id"
+          >
+            <span [ngClass]="s.class"></span>
+            {{s.name}}
+          </button>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <b>Create simple Shorts video too</b>
+            <small>Static image video • optional subtle effects</small>
+          </div>
+
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="withVideo">
+            <span></span>
+          </label>
+        </div>
+
+        <div class="twocol" *ngIf="withVideo">
+          <div>
+            <label class="field-label">Video duration</label>
+            <select [(ngModel)]="videoSeconds" class="control">
+              <option [ngValue]="5">5 seconds</option>
+              <option [ngValue]="10">10 seconds</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label">Video type</label>
+            <input
+              class="control"
+              value="9:16 YouTube Shorts MP4"
+              disabled
+            >
+          </div>
+        </div>
+
+        <div class="toggle-row" *ngIf="withVideo">
+          <div>
+            <b>Apply effect</b>
+            <small>
+              Keep full image visible, just add a subtle overlay feel
+            </small>
+          </div>
+
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="effectEnabled">
+            <span></span>
+          </label>
+        </div>
+
+        <div class="twocol" *ngIf="withVideo && effectEnabled">
+          <div>
+            <label class="field-label">Effect style</label>
+            <select [(ngModel)]="effectStyle" class="control">
+              <option value="reference">Reference Style</option>
+              <option value="softGlow">Soft Glow</option>
+              <option value="float">Float</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label">Effect behavior</label>
+            <input
+              class="control"
+              value="Full image stays visible"
+              disabled
+            >
+          </div>
+        </div>
+
+        <div class="key-area">
+          <label class="field-label">
+            Gemini API key <span>optional</span>
+          </label>
+
+          <input
+            [(ngModel)]="geminiKey"
+            class="control"
+            type="password"
+            placeholder="Paste your AI Studio API key"
+            autocomplete="off"
+          >
+
+          <select [(ngModel)]="model" class="control tiny">
+            <option value="gemini-3.5-flash-lite">
+              Gemini 3.5 Flash-Lite (default)
+            </option>
+            <option value="gemini-3.1-flash-lite">
+              Gemini 3.1 Flash-Lite
+            </option>
+            <option value="gemini-2.5-flash-lite">
+              Gemini 2.5 Flash-Lite (legacy)
+            </option>
+          </select>
+
+          <small class="hint">
+            Only Flash-Lite text models.
+            Temporary 503/429 errors trigger retry and Lite-model fallback.
+            If Gemini is unavailable, a prewritten local quote is used
+            with a clear warning (not a new AI quote).
+          </small>
+        </div>
+
+        <details class="api-settings">
+          <summary>API URL / Deployment settings</summary>
+
+          <input
+            [(ngModel)]="apiBase"
+            class="control"
+            placeholder="Leave blank for local proxy"
+            aria-label="Backend API URL"
+          >
+
+          <button
+            type="button"
+            class="test-btn"
+            (click)="checkWorker()"
+          >
+            Check connection
+          </button>
+
+          <label
+            class="field-label"
+            for="studio-access-key"
+          >
+            Studio access key (from Render)
+          </label>
+
+          <input
+            id="studio-access-key"
+            [(ngModel)]="studioAccessKey"
+            type="password"
+            autocomplete="off"
+            class="control"
+            placeholder="Same value as GENERATE_ACCESS_KEY on Render"
+          >
+
+          <small class="hint">
+            Local Windows: API URL can stay empty.
+            On Netlify the Render URL is set automatically using
+            RENDER_API_URL at build time.
+            The studio access key is optional locally;
+            for public deployment set it on Render to prevent
+            outsiders starting renders.
+          </small>
+        </details>
+
+        <div class="error" *ngIf="error">
+          ⚠ {{error}}
+        </div>
+
+        <p
+          class="connection-status"
+          *ngIf="statusMessage"
+        >
+          {{statusMessage}}
+        </p>
+
+        <button
+          type="button"
+          class="generate"
+          [disabled]="busy"
+          (click)="generate()"
+        >
+          <span>{{busy?'◌':'✦'}}</span>
+          {{busy?'GENERATING CONTENT…':'GENERATE IMAGE + VIDEO'}}
+        </button>
+
+        <p class="fine center">
+          Text is auto-wrapped and spaced to avoid overlap.
+        </p>
+      </section>
+
+      <section class="preview-panel">
+        <div class="panel-title">
+          <div>
+            <span class="step">02</span>
+            <h2>Creative preview</h2>
+          </div>
+
+          <span class="result-indicator">
+            {{showResult?'✓ READY':'● STUDIO'}}
+          </span>
+        </div>
+
+        <div class="placeholder" *ngIf="!showResult">
+          <div class="sample-art">
+            <div class="glow-a"></div>
+            <div class="glow-b"></div>
+
+            <div class="sample-tag">
+              @yourhandle
+            </div>
+
+            <div class="sample-title">
+              Before you reply to everything,
+              <br>
+              <span>protect your peace first.</span>
+            </div>
+          </div>
+
+          <p>
+            Your quote poster and static Shorts video will appear
+            here after generation.
+          </p>
+
+          <small>
+            PNG • MP4 • Caption • Hashtags • Metadata
+          </small>
+        </div>
+
+        <div
+          *ngIf="job && !showResult"
+          class="progress-wrap"
+        >
+          <div class="progress-head">
+            {{job.stage}}
+            <b>{{job.progress}}%</b>
+          </div>
+
+          <div class="progress-track">
+            <div [style.width.%]="job.progress"></div>
+          </div>
+
+          <small *ngIf="busy">
+            Creating your content…
+          </small>
+        </div>
+
+        <ng-container *ngIf="showResult && job as j">
+          <div class="preview-images">
+            <div class="preview-media">
+              <div class="preview-tag">
+                Image preview
+              </div>
+
+              <img
+                [src]="asset('poster')"
+                alt="Generated quote poster"
+                class="poster-image"
+                loading="eager"
+                (error)="onMediaError('poster')"
+              >
+
+              <p
+                *ngIf="mediaErrors.poster"
+                class="warning"
+              >
+                {{mediaErrors.poster}}
+              </p>
+            </div>
+
+            <div
+              *ngIf="j.assets?.['reel']"
+              class="preview-media"
+            >
+              <div class="preview-tag">
+                Video preview • play here
+              </div>
+
+              <video
+                [src]="asset('reel')"
+                [poster]="asset('poster')"
+                controls
+                playsinline
+                preload="metadata"
+                title="Generated quote video"
+                (error)="onMediaError('reel')"
+              ></video>
+
+              <p
+                *ngIf="mediaErrors.reel"
+                class="warning"
+              >
+                {{mediaErrors.reel}}
+              </p>
+            </div>
+          </div>
+
+          <div class="download-row">
+            <a
+              class="download-btn"
+              [href]="download('poster')"
+              download
+            >
+              ↓ DOWNLOAD PNG
+            </a>
+
+            <a
+              *ngIf="j.assets?.['reel']"
+              class="download-btn secondary"
+              [href]="download('reel')"
+              download
+            >
+              ↓ DOWNLOAD MP4
+            </a>
+
+            <a
+              class="download-btn secondary"
+              [href]="asset('metadata')"
+              target="_blank"
+              rel="noopener"
+            >
+              ↗ META JSON
+            </a>
+          </div>
+
+          <div class="download-row">
+            <a
+              class="download-btn secondary"
+              [href]="asset('poster')"
+              target="_blank"
+              rel="noopener"
+            >
+              Open image in browser ↗
+            </a>
+
+            <a
+              *ngIf="j.assets?.['reel']"
+              class="download-btn secondary"
+              [href]="asset('reel')"
+              target="_blank"
+              rel="noopener"
+            >
+              Open video in browser ↗
+            </a>
+          </div>
+
+          <div class="seo-box">
+            <div class="seo-title">
+              <b>Title, description & tags</b>
+
+              <button
+                type="button"
+                (click)="copy(completeCaption,'caption')"
+              >
+                {{copied==='caption'?'✓ Copied':'Copy all'}}
+              </button>
+            </div>
+
+            <div class="seo-subtitle">TITLE</div>
+
+            <p>
+              <b>{{j.post?.seoTitle}}</b>
+            </p>
+
+            <div class="seo-subtitle">
+              DESCRIPTION / CAPTION
+            </div>
+
+            <p class="caption-text">
+              {{j.post?.caption}}
+            </p>
+
+            <div class="seo-subtitle">
+              HASHTAGS / TAGS
+            </div>
+
+            <p class="tags">
+              {{j.post?.hashtags?.join(' ')}}
+            </p>
+
+            <p class="source">
+              <strong>Quote type:</strong>
+              {{j.post?.verification}}
+            </p>
+
+            <p class="source">
+              <strong>Video:</strong>
+              {{j.assets?.['reel'] ? '9:16 MP4, no music' : 'Not requested'}}
+            </p>
+
+            <p class="source">
+              <a
+                [href]="asset('credits')"
+                target="_blank"
+                rel="noopener"
+              >
+                Open credits ↗
+              </a>
+            </p>
+          </div>
+
+          <p
+            *ngFor="let warning of j.warnings"
+            class="warning"
+          >
+            ⓘ {{warning}}
+          </p>
+        </ng-container>
+
+        <section class="gallery-section">
+          <div class="gallery-title">
+            <h3>Recent outputs</h3>
+
+            <button
+              type="button"
+              class="test-btn"
+              (click)="loadHistory()"
+              [disabled]="historyBusy"
+            >
+              {{historyBusy?'Loading…':'↻ Refresh'}}
+            </button>
+          </div>
+
+          <p class="hint">
+            Already generated PNG/MP4 files are listed here,
+            including outputs from before a page refresh or Node restart.
+          </p>
+
+          <div
+            *ngIf="galleryError"
+            class="warning"
+          >
+            {{galleryError}} — Make sure Node runs on port 3100.
+          </div>
+
+          <div
+            *ngIf="!historyBusy && !history.length && !galleryError"
+            class="gallery-empty"
+          >
+            No completed outputs yet. Generate one above,
+            then it will appear here.
+          </div>
+
+          <div
+            class="gallery-grid"
+            *ngIf="history.length"
+          >
+            <button
+              type="button"
+              *ngFor="let item of history"
+              class="gallery-card"
+              [class.selected]="job?.id===item.id"
+              (click)="selectHistory(item)"
+              [disabled]="busy"
+            >
+              <img
+                [src]="asset('poster',item)"
+                alt="Previously generated quote"
+                loading="lazy"
+              >
+
+              <span>
+                {{item.assets?.['reel']?'PNG + MP4':'PNG only'}}
+              </span>
+
+              <small>
+                {{(item.post?.headline||'Saved quote').slice(0,65)}}
+              </small>
+            </button>
+          </div>
+        </section>
+
+        <div class="tip">
+          <b>Publishing tip</b>
+          <span>
+            Use short emotional first lines, one consistent handle,
+            category-based series, and readable layouts.
+            Test both image posts and the same quote as a static Shorts video.
+          </span>
+        </div>
+      </section>
+    </div>
+  </main>
 </div>
